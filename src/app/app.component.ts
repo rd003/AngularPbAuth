@@ -1,36 +1,83 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet,RouterModule],
   template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center" class="content">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <span style="display: block">{{ title }} app is running!</span>
-      <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-    </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
+    <nav>
+      <ul>
+        <li><a routerLink="/home" routerLinkActive="active" >Home</a></li>
+        <li><a routerLink="/about" routerLinkActive="active">About</a></li>
+
+        <ng-container *ngIf="user$|async as user">
+             <ng-container *ngIf="user && user.isValid">
+                <li><a routerLink="/category" routerLinkActive="active">Categories</a></li>
+                <li><a style="cursor:pointer" (click)="logout()">Logout ({{user.username}})</a></li>
+             </ng-container>
+        </ng-container>
+       
+        <ng-container *ngIf="!(user$|async) || !(user$|async)?.isValid">
+          <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
+        </ng-container>
+
+      </ul>
+  </nav>
+  <div class="layout">
     <router-outlet></router-outlet>
+  </div>
   `,
-  styles: [],
+  styles: [`
+   nav {
+  background-color: #333;
+}
+
+ul {
+  list-style-type: none;
+  overflow: hidden;
+}
+
+li {
+  display:inline-block;
+}
+
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li a:hover {
+  background-color: #111;
+}
+
+.active{
+  background-color: #111;
+}
+
+.layout{
+  padding-top:20px;
+  padding-left:10px;
+}
+
+  `],
 })
 export class AppComponent {
-  title = 'AngularPbAuth';
+  
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  // fields
+  user$ = this.authService.user$;
+
+  logout() {
+    this.authService.logout();
+    this.authService.updateUserSubjet();
+    this.router.navigate(['/login']);
+  }
 }
